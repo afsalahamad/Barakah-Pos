@@ -1,5 +1,6 @@
 import React from "react";
-import { ShoppingCart, PauseCircle, Boxes, User, Sparkles, LogOut } from "lucide-react";
+import { ShoppingCart, PauseCircle, Boxes, Wallet, User, LogOut } from "lucide-react";
+import logoImg from "../../logo/Barakah-Pos-Logo.png";
 
 export const CashierShell = ({
   children,
@@ -13,6 +14,7 @@ export const CashierShell = ({
     { id: "billing", label: "Billing", icon: ShoppingCart },
     { id: "held-bills", label: "Held Bills", icon: PauseCircle },
     { id: "stock", label: "Stock", icon: Boxes },
+    { id: "expenses", label: "Expenses", icon: Wallet },
     { id: "profile", label: "Profile", icon: User },
   ];
   const myHeldCount = heldBills.filter((b) => b.cashierId === currentUser?.id).length;
@@ -20,10 +22,8 @@ export const CashierShell = ({
   return (
     <div className="min-h-screen bg-stone-50 font-body flex flex-col">
       <header className="h-16 bg-emerald-950 flex items-center justify-between px-4 sm:px-6 shrink-0">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center">
-            <Sparkles className="text-emerald-950" size={16} />
-          </div>
+        <div className="flex items-center gap-2.5">
+          <img src={logoImg} alt="Logo" className="w-8 h-8 object-contain rounded-lg bg-white p-0.5" />
           <span className="font-display font-semibold text-white hidden sm:inline">Barakah POS</span>
         </div>
         <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto">

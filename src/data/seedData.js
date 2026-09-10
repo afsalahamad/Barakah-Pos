@@ -60,3 +60,69 @@ export const seedTransactions = rawSeedTxns.map((t, i) => {
     createdAt: daysAgo(t.day, t.h, t.m),
   };
 });
+
+export const EXPENSE_CATEGORIES = [
+  "Delivery",
+  "Transport",
+  "Cleaning",
+  "Packaging",
+  "Maintenance",
+  "Supplies",
+  "Other",
+];
+
+export const seedGrns = [
+  {
+    id: "g1",
+    grnNumber: "GRN-2026-000001",
+    supplier: "Al-Barakah Global Trading",
+    supplierRef: "INV-SUP-8841",
+    createdBy: "Admin User",
+    notes: "Received bulk shipment of Medjool dates and basmati rice.",
+    items: [
+      { productId: "p1", name: "Medjool Dates 500g", receivedQty: 20, unitCost: 5.2, lineTotal: 104.0 },
+      { productId: "p2", name: "Basmati Rice 5kg", receivedQty: 10, unitCost: 8.0, lineTotal: 80.0 },
+    ],
+    totalCost: 184.0,
+    status: "Completed",
+    createdAt: daysAgo(4),
+  },
+  {
+    id: "g2",
+    grnNumber: "GRN-2026-000002",
+    supplier: "Desert Oasis Spices & Tea",
+    supplierRef: "SUP-9902",
+    createdBy: "Admin User",
+    notes: "Restocked Arabic coffee and Moroccan mint tea.",
+    items: [
+      { productId: "p4", name: "Arabic Coffee 250g", receivedQty: 15, unitCost: 5.5, lineTotal: 82.5 },
+      { productId: "p7", name: "Mint Tea, 100 bags", receivedQty: 10, unitCost: 3.8, lineTotal: 38.0 },
+    ],
+    totalCost: 120.5,
+    status: "Completed",
+    createdAt: daysAgo(1),
+  },
+];
+
+export const seedExpenses = [
+  {
+    id: "e1",
+    expenseNumber: "EXP-2026-000001",
+    category: "Delivery",
+    amount: 15.0,
+    note: "Paid local courier for customer delivery",
+    cashierId: "u2",
+    cashierName: "John Mensah",
+    createdAt: daysAgo(3, 11, 30),
+  },
+  {
+    id: "e2",
+    expenseNumber: "EXP-2026-000002",
+    category: "Cleaning",
+    amount: 25.0,
+    note: "Purchased store cleaning materials & disinfectant",
+    cashierId: "u3",
+    cashierName: "Sara Yusuf",
+    createdAt: daysAgo(1, 14, 15),
+  },
+];

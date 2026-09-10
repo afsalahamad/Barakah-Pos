@@ -11,9 +11,11 @@ import {
   Settings as SettingsIcon,
   User,
   LogOut,
-  Sparkles,
   Menu,
+  FileCheck,
+  Wallet,
 } from "lucide-react";
+import logoImg from "../../logo/Barakah-Pos-Logo.png";
 
 export const AdminShell = ({
   children,
@@ -27,17 +29,19 @@ export const AdminShell = ({
   const adminNav = [
     { section: "Overview", items: [{ id: "dashboard", label: "Dashboard", icon: LayoutDashboard }] },
     {
-      section: "Sales",
+      section: "Sales & Finance",
       items: [
         { id: "pos", label: "POS / Billing", icon: ShoppingCart },
         { id: "transactions", label: "Transactions", icon: Receipt },
         { id: "held-bills", label: "Held Bills", icon: PauseCircle },
+        { id: "expenses", label: "Expenses", icon: Wallet },
       ],
     },
     {
       section: "Inventory",
       items: [
         { id: "products", label: "Products", icon: Package },
+        { id: "grn", label: "GRN (Receiving)", icon: FileCheck },
         { id: "stock", label: "Stock", icon: Boxes },
       ],
     },
@@ -55,10 +59,8 @@ export const AdminShell = ({
         } bg-emerald-950 shrink-0 transition-all duration-200 flex flex-col`}
         style={sidebarCollapsed ? { width: 68 } : undefined}
       >
-        <div className="h-16 flex items-center gap-2 px-4 border-b border-emerald-900">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 flex items-center justify-center shrink-0">
-            <Sparkles className="text-emerald-950" size={16} />
-          </div>
+        <div className="h-16 flex items-center gap-2.5 px-4 border-b border-emerald-900">
+          <img src={logoImg} alt="Logo" className="w-8 h-8 object-contain rounded-lg shrink-0 bg-white p-0.5" />
           {!sidebarCollapsed && <span className="font-display font-semibold text-white tracking-tight">Barakah POS</span>}
         </div>
         <nav className="flex-1 overflow-y-auto py-3 px-2">

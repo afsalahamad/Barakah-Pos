@@ -1,6 +1,7 @@
 import React from "react";
-import { Sparkles, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import { PrimaryBtn } from "../ui/Buttons";
+import logoImg from "../../logo/Barakah-Pos-Logo.png";
 
 export const IntroScreen = ({ onGetStarted }) => (
   <div className="min-h-screen bg-emerald-950 flex items-center justify-center relative overflow-hidden font-body">
@@ -13,9 +14,11 @@ export const IntroScreen = ({ onGetStarted }) => (
       }}
     />
     <div className="relative z-10 text-center px-6 max-w-md">
-      <div className="mx-auto w-16 h-16 rounded-2xl bg-amber-500 flex items-center justify-center mb-6">
-        <Sparkles className="text-emerald-950" size={30} />
-      </div>
+      <img
+        src={logoImg}
+        alt="Barakah POS Logo"
+        className="mx-auto w-24 h-24 object-contain rounded-2xl mb-6 bg-white/90 p-2 shadow-lg"
+      />
       <h1 className="font-display text-4xl font-bold text-white tracking-tight">Barakah POS</h1>
       <p className="text-amber-400 font-medium mt-2">Simple, fast and professional billing for your business.</p>
       <p className="text-emerald-200/70 text-sm mt-3">

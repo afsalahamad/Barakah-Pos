@@ -2,7 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { Check } from "lucide-react";
 
 // Seed data & helpers
-import { CATEGORIES, initialProducts, initialUsers, seedTransactions } from "./src/data/seedData";
+import { CATEGORIES, initialProducts, initialUsers, seedTransactions, seedGrns, seedExpenses, EXPENSE_CATEGORIES } from "./src/data/seedData";
 import { daysAgo, isToday, isWithinDays, stockStatus } from "./src/utils/helpers";
 
 // UI Components
@@ -32,6 +32,8 @@ import { CashierStock } from "./src/components/cashier/CashierStock";
 // POS & Shared Views
 import { BillingDesk } from "./src/components/pos/BillingDesk";
 import { ProfileView } from "./src/components/shared/ProfileView";
+import { GRN } from "./src/components/admin/GRN";
+import { ExpensesView } from "./src/components/shared/ExpensesView";
 
 // Modals
 import { AppModals } from "./src/components/modals/AppModals";
@@ -47,10 +49,14 @@ export default function BarakahPOS() {
   const [products, setProducts] = useState(initialProducts);
   const [users, setUsers] = useState(initialUsers);
   const [transactions, setTransactions] = useState(seedTransactions);
+  const [grns, setGrns] = useState(seedGrns);
+  const [expenses, setExpenses] = useState(seedExpenses);
   const [heldBills, setHeldBills] = useState([]);
   const [stockMovements, setStockMovements] = useState([]);
   const [invoiceSeq, setInvoiceSeq] = useState(112);
   const [holdSeq, setHoldSeq] = useState(1);
+  const [grnSeq, setGrnSeq] = useState(3);
+  const [expenseSeq, setExpenseSeq] = useState(3);
 
   const [business, setBusiness] = useState({
     name: "Barakah Mart",
@@ -288,6 +294,145 @@ export default function BarakahPOS() {
     setModal(null);
   };
 
+  /* -------------------------- GRN (Goods Received Note) -------------------------- */
+  const openGrnForm = () => {
+    const defaultProd = products[0];
+    setModal({
+      type: "grnForm",
+      data: {
+        supplier: "",
+        supplierRef: "",
+        notes: "",
+        items: [
+          {
+            productId: defaultProd?.id || "",
+            name: defaultProd?.name || "",
+            receivedQty: 1,
+            unitCost: defaultProd?.cost || 0,
+          },
+        ],
+      },
+    });
+  };
+
+  const viewGrnDetails = (grn) => {
+    setModal({ type: "grnDetails", grn });
+  };
+
+  const createGrn = (d) => {
+    if (!d.supplier.trim()) {
+      showToast("Supplier name is required.");
+      return;
+    }
+    if (!d.items || d.items.length === 0) {
+      showToast("At least one product item is required.");
+      return;
+    }
+    const hasInvalidItem = d.items.some(
+      (it) => !it.productId || +it.receivedQty <= 0 || +it.unitCost < 0
+    );
+    if (hasInvalidItem) {
+      showToast("Please ensure all products have valid received quantity and cost.");
+      return;
+    }
+
+    const grnNumber = `GRN-2026-${String(grnSeq).padStart(6, "0")}`;
+    const formattedItems = d.items.map((it) => {
+      const prod = products.find((p) => p.id === it.productId);
+      const recQty = +it.receivedQty;
+      const unitCost = +it.unitCost;
+      return {
+        productId: it.productId,
+        name: it.name || prod?.name || "Product",
+        receivedQty: recQty,
+        unitCost,
+        lineTotal: +(recQty * unitCost).toFixed(2),
+      };
+    });
+
+    const totalCost = +formattedItems.reduce((s, it) => s + it.lineTotal, 0).toFixed(2);
+
+    const newGrn = {
+      id: "g" + Date.now(),
+      grnNumber,
+      supplier: d.supplier.trim(),
+      supplierRef: d.supplierRef.trim(),
+      createdBy: currentUser?.name || "Admin User",
+      notes: d.notes.trim(),
+      items: formattedItems,
+      totalCost,
+      status: "Completed",
+      createdAt: Date.now(),
+    };
+
+    // 1. Update Product Stock
+    setProducts((ps) =>
+      ps.map((p) => {
+        const item = formattedItems.find((it) => it.productId === p.id);
+        return item ? { ...p, stock: p.stock + item.receivedQty } : p;
+      })
+    );
+
+    // 2. Create Stock Movement Audit Log
+    const newMovements = formattedItems.map((it, i) => {
+      const prod = products.find((p) => p.id === it.productId);
+      const oldStock = prod ? prod.stock : 0;
+      return {
+        id: "m_grn_" + Date.now() + "_" + i,
+        productId: it.productId,
+        productName: it.name,
+        movementType: "GRN_RECEIVED",
+        oldStock,
+        newStock: oldStock + it.receivedQty,
+        reason: `Stock received through ${grnNumber} (Supplier: ${newGrn.supplier})`,
+        admin: currentUser?.name || "Admin User",
+        date: Date.now(),
+      };
+    });
+
+    setStockMovements((m) => [...newMovements, ...m]);
+    setGrns((g) => [newGrn, ...g]);
+    setGrnSeq((n) => n + 1);
+    setModal(null);
+    showToast(`GRN created (${grnNumber}) and stock updated successfully.`);
+  };
+
+  /* -------------------------- Expenses -------------------------- */
+  const openExpenseForm = () => {
+    setModal({
+      type: "expenseForm",
+      data: {
+        category: EXPENSE_CATEGORIES[0],
+        amount: "",
+        note: "",
+      },
+    });
+  };
+
+  const createExpense = (d) => {
+    const amt = +d.amount;
+    if (!amt || amt <= 0) {
+      showToast("Enter a valid expense amount greater than 0.");
+      return;
+    }
+    const expenseNumber = `EXP-2026-${String(expenseSeq).padStart(6, "0")}`;
+    const newExpense = {
+      id: "e" + Date.now(),
+      expenseNumber,
+      category: d.category,
+      amount: amt,
+      note: d.note.trim(),
+      cashierId: currentUser?.id || "u1",
+      cashierName: currentUser?.name || "Staff",
+      createdAt: Date.now(),
+    };
+
+    setExpenses((e) => [newExpense, ...e]);
+    setExpenseSeq((n) => n + 1);
+    setModal(null);
+    showToast(`Expense ${expenseNumber} saved successfully.`);
+  };
+
   /* -------------------------- cashier POS cart -------------------------- */
   const cartSubtotal = +cart.reduce((s, i) => s + i.price * i.qty, 0).toFixed(2);
   const cashReceived = +cashReceivedInput || 0;
@@ -522,6 +667,17 @@ export default function BarakahPOS() {
           setModal={setModal}
         />
       );
+    } else if (adminView === "grn") {
+      content = <GRN grns={grns} openGrnForm={openGrnForm} viewGrnDetails={viewGrnDetails} />;
+    } else if (adminView === "expenses") {
+      content = (
+        <ExpensesView
+          expenses={expenses}
+          openExpenseForm={openExpenseForm}
+          currentUser={currentUser}
+          isAdmin={true}
+        />
+      );
     } else if (adminView === "held-bills") {
       content = <AdminHeldBills heldBills={heldBills} />;
     } else if (adminView === "reports") {
@@ -642,6 +798,15 @@ export default function BarakahPOS() {
           setCashierStockSearch={setCashierStockSearch}
         />
       );
+    } else if (cashierView === "expenses") {
+      content = (
+        <ExpensesView
+          expenses={expenses}
+          openExpenseForm={openExpenseForm}
+          currentUser={currentUser}
+          isAdmin={false}
+        />
+      );
     } else if (cashierView === "profile") {
       content = (
         <ProfileView
@@ -683,6 +848,8 @@ export default function BarakahPOS() {
         removeHeldBill={removeHeldBill}
         products={products}
         business={business}
+        createGrn={createGrn}
+        createExpense={createExpense}
       />
       {toast && (
         <div className="fixed bottom-5 left-1/2 -translate-x-1/2 bg-stone-900 text-white text-sm font-body px-4 py-2.5 rounded-md shadow-lg z-50 flex items-center gap-2">

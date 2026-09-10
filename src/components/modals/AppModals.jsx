@@ -298,9 +298,17 @@ export const AppModals = ({
   if (modal.type === "transactionDetail" || modal.type === "saleSuccess") {
     const t = modal.txn;
     const isSuccess = modal.type === "saleSuccess";
+    const paperWidth = business.receiptPaperWidth || "80mm";
     return (
       <Modal
-        title={isSuccess ? "Sale completed successfully." : `Invoice ${t.invoiceNumber}`}
+        title={
+          <span className="flex items-center justify-between w-full pr-6">
+            <span>{isSuccess ? "Sale completed successfully." : `Invoice ${t.invoiceNumber}`}</span>
+            <span className="text-xs font-normal text-stone-400 font-body">
+              {paperWidth} thermal · F9 to print
+            </span>
+          </span>
+        }
         onClose={() => setModal(null)}
         footer={
           <>
@@ -308,14 +316,14 @@ export const AppModals = ({
               <>
                 <GhostBtn onClick={() => setModal(null)}>New bill</GhostBtn>
                 <PrimaryBtn onClick={() => window.print()}>
-                  <Printer size={15} /> Print bill
+                  <Printer size={15} /> Print bill (F9)
                 </PrimaryBtn>
               </>
             ) : (
               <>
                 <GhostBtn onClick={() => setModal(null)}>Close</GhostBtn>
                 <PrimaryBtn onClick={() => window.print()}>
-                  <Printer size={15} /> Print / Reprint
+                  <Printer size={15} /> Print (F9)
                 </PrimaryBtn>
               </>
             )}

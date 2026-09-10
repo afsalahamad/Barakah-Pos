@@ -67,6 +67,7 @@ export default function BarakahPOS() {
     receiptHeader: "Thank you for shopping with us.",
     receiptFooter: "Thank you for your business.",
     invoicePrefix: "INV-2026",
+    receiptPaperWidth: "80mm",
   });
 
   const [adminView, setAdminView] = useState("dashboard");
@@ -81,6 +82,22 @@ export default function BarakahPOS() {
       return () => clearTimeout(t);
     }
   }, [toast]);
+
+  // F9 Print Hotkey Listener
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "F9") {
+        e.preventDefault();
+        if (modal && (modal.type === "saleSuccess" || modal.type === "transactionDetail")) {
+          window.print();
+        } else {
+          showToast("No receipt preview available to print.");
+        }
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [modal]);
 
   // cashier POS cart
   const [cart, setCart] = useState([]);
@@ -844,7 +861,7 @@ export default function BarakahPOS() {
 
   return (
     <div className="font-body">
-      <GlobalStyle />
+      <GlobalStyle receiptPaperWidth={business.receiptPaperWidth} />
       {body}
       <AppModals
         modal={modal}

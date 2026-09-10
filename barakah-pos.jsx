@@ -689,6 +689,11 @@ export default function BarakahPOS() {
           setReportRange={setReportRange}
           rangeTxns={rangeTxns}
           products={products}
+          transactions={transactions}
+          expenses={expenses}
+          grns={grns}
+          business={business}
+          currentUser={currentUser}
         />
       );
     } else if (adminView === "users") {

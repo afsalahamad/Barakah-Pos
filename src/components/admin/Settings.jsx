@@ -46,25 +46,13 @@ export const Settings = ({ business, setBusiness, showToast }) => (
     </div>
     <div className="bg-white border border-stone-200 rounded-lg p-5">
       <p className="font-display font-semibold text-stone-800 mb-4">Receipt settings</p>
-      <div className="grid sm:grid-cols-2 gap-x-4">
-        <Field label="Invoice number prefix">
-          <input
-            className={inputCls}
-            value={business.invoicePrefix || "INV-2026"}
-            onChange={(e) => setBusiness({ ...business, invoicePrefix: e.target.value })}
-          />
-        </Field>
-        <Field label="Receipt paper width">
-          <select
-            className={inputCls}
-            value={business.receiptPaperWidth || "80mm"}
-            onChange={(e) => setBusiness({ ...business, receiptPaperWidth: e.target.value })}
-          >
-            <option value="80mm">80mm (Standard POS Thermal)</option>
-            <option value="58mm">58mm (Mini Thermal Printer)</option>
-          </select>
-        </Field>
-      </div>
+      <Field label="Invoice number prefix">
+        <input
+          className={inputCls}
+          value={business.invoicePrefix}
+          onChange={(e) => setBusiness({ ...business, invoicePrefix: e.target.value })}
+        />
+      </Field>
       <Field label="Receipt header">
         <input
           className={inputCls}

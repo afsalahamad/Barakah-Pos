@@ -17,7 +17,11 @@ export const isToday = (ts) => new Date(ts).toDateString() === new Date().toDate
 
 export const isWithinDays = (ts, n) => ts >= Date.now() - n * 86400000;
 
+export const isStockTracked = (product) =>
+  !product || (product.inventoryType || "STOCK_TRACKED") === "STOCK_TRACKED";
+
 export const stockStatus = (product) => {
+  if (!isStockTracked(product)) return "Prepared";
   if (product.stock <= 0) return "Out of Stock";
   if (product.stock <= product.lowStockThreshold) return "Low Stock";
   return "In Stock";
@@ -28,12 +32,14 @@ export const TONE = {
   amber: "bg-amber-50 text-amber-700 border-amber-200",
   rose: "bg-rose-50 text-rose-700 border-rose-200",
   stone: "bg-stone-100 text-stone-500 border-stone-200",
+  indigo: "bg-indigo-50 text-indigo-700 border-indigo-200",
 };
 
 export const STATUS_TONE = {
   "In Stock": "emerald",
   "Low Stock": "amber",
   "Out of Stock": "rose",
+  Prepared: "indigo",
   Active: "emerald",
   Inactive: "stone",
   Completed: "emerald",

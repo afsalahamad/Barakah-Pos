@@ -1,6 +1,6 @@
 import React from "react";
 import { Search } from "lucide-react";
-import { stockStatus } from "../../utils/helpers";
+import { stockStatus, isStockTracked } from "../../utils/helpers";
 import { inputCls } from "../ui/FormElements";
 import { GhostBtn } from "../ui/Buttons";
 import { Badge } from "../ui/Badge";
@@ -38,10 +38,11 @@ export const Stock = ({
           value={stockStatusFilter}
           onChange={(e) => setStockStatusFilter(e.target.value)}
         >
-          <option>All</option>
-          <option>In Stock</option>
-          <option>Low Stock</option>
-          <option>Out of Stock</option>
+          <option value="All">All</option>
+          <option value="In Stock">In Stock</option>
+          <option value="Low Stock">Low Stock</option>
+          <option value="Out of Stock">Out of Stock</option>
+          <option value="Prepared">Prepared / Non-Stock</option>
         </select>
       </div>
       <table className="w-full">
@@ -56,24 +57,31 @@ export const Stock = ({
           </tr>
         </thead>
         <tbody>
-          {filtered.map((p) => (
-            <tr key={p.id} className="border-b border-stone-50 hover:bg-stone-50">
-              <Td className="font-medium text-stone-900">{p.name}</Td>
-              <Td>{p.sku}</Td>
-              <Td>
-                {p.stock} {p.unit}
-              </Td>
-              <Td>{p.lowStockThreshold}</Td>
-              <Td>
-                <Badge text={stockStatus(p)} />
-              </Td>
-              <Td>
-                <GhostBtn className="py-1.5 px-3 text-xs" onClick={() => openStockAdjust(p)}>
-                  Adjust stock
-                </GhostBtn>
-              </Td>
-            </tr>
-          ))}
+          {filtered.map((p) => {
+            const tracked = isStockTracked(p);
+            return (
+              <tr key={p.id} className="border-b border-stone-50 hover:bg-stone-50">
+                <Td className="font-medium text-stone-900">{p.name}</Td>
+                <Td>{p.sku}</Td>
+                <Td>
+                  {tracked ? `${p.stock} ${p.unit || ""}` : <span className="text-stone-400 italic text-xs">On-Demand</span>}
+                </Td>
+                <Td>{tracked ? p.lowStockThreshold : "-"}</Td>
+                <Td>
+                  <Badge text={stockStatus(p)} />
+                </Td>
+                <Td>
+                  {tracked ? (
+                    <GhostBtn className="py-1.5 px-3 text-xs" onClick={() => openStockAdjust(p)}>
+                      Adjust stock
+                    </GhostBtn>
+                  ) : (
+                    <span className="text-xs text-stone-400 italic">No Stock Needed</span>
+                  )}
+                </Td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
       {stockMovements.length > 0 && (

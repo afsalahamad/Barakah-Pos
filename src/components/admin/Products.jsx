@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { Search, Plus, Pencil, Trash2 } from "lucide-react";
 import { CATEGORIES } from "../../data/seedData";
-import { money } from "../../utils/helpers";
+import { money, isStockTracked } from "../../utils/helpers";
 import { inputCls } from "../ui/FormElements";
 import { PrimaryBtn } from "../ui/Buttons";
 import { EmptyState } from "../ui/EmptyState";
@@ -17,12 +17,20 @@ export const Products = ({
   openProductForm,
   confirmDeactivateProduct,
 }) => {
-  const filtered = products.filter(
-    (p) =>
-      (productCategoryFilter === "All" || p.category === productCategoryFilter) &&
-      (p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.sku.toLowerCase().includes(productSearch.toLowerCase()))
-  );
+  const [inventoryTypeFilter, setInventoryTypeFilter] = useState("All");
+
+  const filtered = products.filter((p) => {
+    const matchCat = productCategoryFilter === "All" || p.category === productCategoryFilter;
+    const matchSearch =
+      p.name.toLowerCase().includes(productSearch.toLowerCase()) ||
+      p.sku.toLowerCase().includes(productSearch.toLowerCase());
+    const isTracked = isStockTracked(p);
+    const matchInv =
+      inventoryTypeFilter === "All" ||
+      (inventoryTypeFilter === "Stock Tracked" && isTracked) ||
+      (inventoryTypeFilter === "Prepared" && !isTracked);
+    return matchCat && matchSearch && matchInv;
+  });
 
   return (
     <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
@@ -42,10 +50,21 @@ export const Products = ({
             value={productCategoryFilter}
             onChange={(e) => setProductCategoryFilter(e.target.value)}
           >
-            <option>All</option>
+            <option value="All">All Categories</option>
             {CATEGORIES.map((c) => (
-              <option key={c}>{c}</option>
+              <option key={c} value={c}>
+                {c}
+              </option>
             ))}
+          </select>
+          <select
+            className={inputCls + " w-40"}
+            value={inventoryTypeFilter}
+            onChange={(e) => setInventoryTypeFilter(e.target.value)}
+          >
+            <option value="All">All Tracking</option>
+            <option value="Stock Tracked">Stock Tracked</option>
+            <option value="Prepared">Prepared / Non-Stock</option>
           </select>
         </div>
         <PrimaryBtn onClick={() => openProductForm("add")}>
@@ -70,44 +89,55 @@ export const Products = ({
               <Th>SKU</Th>
               <Th>Category</Th>
               <Th>Price</Th>
-              <Th>Stock</Th>
+              <Th>Inventory Mode</Th>
+              <Th>Current Stock</Th>
               <Th>Status</Th>
               <Th>Actions</Th>
             </tr>
           </thead>
           <tbody>
-            {filtered.map((p) => (
-              <tr key={p.id} className="border-b border-stone-50 hover:bg-stone-50">
-                <Td className="font-medium text-stone-900">{p.name}</Td>
-                <Td>{p.sku}</Td>
-                <Td>{p.category}</Td>
-                <Td>{money(p.price)}</Td>
-                <Td>
-                  {p.stock} {p.unit}
-                </Td>
-                <Td>
-                  <Badge text={p.status} />
-                </Td>
-                <Td>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => openProductForm("edit", p)}
-                      className="text-stone-400 hover:text-emerald-800"
-                      title="Edit"
-                    >
-                      <Pencil size={15} />
-                    </button>
-                    <button
-                      onClick={() => confirmDeactivateProduct(p)}
-                      className="text-stone-400 hover:text-rose-600"
-                      title={p.status === "Active" ? "Deactivate" : "Activate"}
-                    >
-                      <Trash2 size={15} />
-                    </button>
-                  </div>
-                </Td>
-              </tr>
-            ))}
+            {filtered.map((p) => {
+              const tracked = isStockTracked(p);
+              return (
+                <tr key={p.id} className="border-b border-stone-50 hover:bg-stone-50">
+                  <Td className="font-medium text-stone-900">{p.name}</Td>
+                  <Td>{p.sku}</Td>
+                  <Td>{p.category}</Td>
+                  <Td>{money(p.price)}</Td>
+                  <Td>
+                    <Badge text={tracked ? "Stock Tracked" : "Prepared"} tone={tracked ? "emerald" : "indigo"} />
+                  </Td>
+                  <Td>
+                    {tracked ? (
+                      `${p.stock} ${p.unit || ""}`
+                    ) : (
+                      <span className="text-stone-400 italic text-xs">On-Demand</span>
+                    )}
+                  </Td>
+                  <Td>
+                    <Badge text={p.status} />
+                  </Td>
+                  <Td>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => openProductForm("edit", p)}
+                        className="text-stone-400 hover:text-emerald-800"
+                        title="Edit"
+                      >
+                        <Pencil size={15} />
+                      </button>
+                      <button
+                        onClick={() => confirmDeactivateProduct(p)}
+                        className="text-stone-400 hover:text-rose-600"
+                        title={p.status === "Active" ? "Deactivate" : "Activate"}
+                      >
+                        <Trash2 size={15} />
+                      </button>
+                    </div>
+                  </Td>
+                </tr>
+              );
+            })}
           </tbody>
         </table>
       )}

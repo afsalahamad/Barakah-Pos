@@ -1,7 +1,7 @@
 import React from "react";
 import { Search, Minus, Plus, Trash2, PauseCircle, Check, AlertTriangle } from "lucide-react";
 import { CATEGORIES } from "../../data/seedData";
-import { money } from "../../utils/helpers";
+import { money, isStockTracked } from "../../utils/helpers";
 import { Field, inputCls } from "../ui/FormElements";
 import { GhostBtn, GoldBtn } from "../ui/Buttons";
 import { Badge } from "../ui/Badge";
@@ -70,7 +70,8 @@ export const BillingDesk = ({
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 overflow-y-auto pr-1">
           {posFiltered.map((p) => {
-            const outOfStock = p.stock <= 0;
+            const tracked = isStockTracked(p);
+            const outOfStock = tracked && p.stock <= 0;
             return (
               <button
                 key={p.id}
@@ -85,7 +86,9 @@ export const BillingDesk = ({
                 <p className="font-body font-medium text-sm text-stone-900 leading-snug">{p.name}</p>
                 <p className="font-display font-semibold text-emerald-800 mt-1.5">{money(p.price)}</p>
                 <div className="mt-1.5">
-                  {outOfStock ? (
+                  {!tracked ? (
+                    <Badge text="Prepared" tone="indigo" />
+                  ) : outOfStock ? (
                     <Badge text="Out of Stock" tone="rose" />
                   ) : (
                     <span className="text-xs text-stone-400">Stock: {p.stock}</span>

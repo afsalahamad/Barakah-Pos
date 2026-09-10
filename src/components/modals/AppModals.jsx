@@ -74,26 +74,40 @@ export const AppModals = ({
           <Field label="Barcode">
             <input className={inputCls} value={d.barcode} onChange={(e) => set("barcode", e.target.value)} />
           </Field>
+          <Field label="Inventory Tracking" required>
+            <select
+              className={inputCls}
+              value={d.inventoryType || "STOCK_TRACKED"}
+              onChange={(e) => set("inventoryType", e.target.value)}
+            >
+              <option value="STOCK_TRACKED">Stock Tracked (Physical Inventory)</option>
+              <option value="NON_STOCK">Non-Stock / Prepared (On-Demand)</option>
+            </select>
+          </Field>
           <Field label="Selling price" required>
             <input type="number" className={inputCls} value={d.price} onChange={(e) => set("price", e.target.value)} />
           </Field>
           <Field label="Cost price">
             <input type="number" className={inputCls} value={d.cost} onChange={(e) => set("cost", e.target.value)} />
           </Field>
-          <Field label="Stock" required>
-            <input type="number" className={inputCls} value={d.stock} onChange={(e) => set("stock", e.target.value)} />
-          </Field>
-          <Field label="Low stock threshold">
-            <input
-              type="number"
-              className={inputCls}
-              value={d.lowStockThreshold}
-              onChange={(e) => set("lowStockThreshold", e.target.value)}
-            />
-          </Field>
-          <Field label="Unit">
-            <input className={inputCls} value={d.unit} onChange={(e) => set("unit", e.target.value)} />
-          </Field>
+          {(d.inventoryType || "STOCK_TRACKED") === "STOCK_TRACKED" && (
+            <>
+              <Field label="Current Stock" required>
+                <input type="number" className={inputCls} value={d.stock} onChange={(e) => set("stock", e.target.value)} />
+              </Field>
+              <Field label="Low stock threshold">
+                <input
+                  type="number"
+                  className={inputCls}
+                  value={d.lowStockThreshold}
+                  onChange={(e) => set("lowStockThreshold", e.target.value)}
+                />
+              </Field>
+              <Field label="Unit">
+                <input className={inputCls} value={d.unit} onChange={(e) => set("unit", e.target.value)} />
+              </Field>
+            </>
+          )}
           <Field label="Status">
             <select className={inputCls} value={d.status} onChange={(e) => set("status", e.target.value)}>
               <option>Active</option>
@@ -370,6 +384,9 @@ export const AppModals = ({
 
   if (modal.type === "grnForm") {
     const d = modal.data;
+    const stockTrackedProducts = products.filter(
+      (p) => (p.inventoryType || "STOCK_TRACKED") === "STOCK_TRACKED"
+    );
     const setHeader = (k, v) => setModal({ ...modal, data: { ...d, [k]: v } });
     const updateItem = (idx, k, v) => {
       const newItems = [...d.items];
@@ -384,14 +401,19 @@ export const AppModals = ({
       setModal({ ...modal, data: { ...d, items: newItems } });
     };
     const addItem = () => {
-      const defaultProd = products[0];
+      const defaultProd = stockTrackedProducts[0] || products[0];
       setModal({
         ...modal,
         data: {
           ...d,
           items: [
             ...d.items,
-            { productId: defaultProd?.id || "", name: defaultProd?.name || "", receivedQty: 1, unitCost: defaultProd?.cost || 0 },
+            {
+              productId: defaultProd?.id || "",
+              name: defaultProd?.name || "",
+              receivedQty: 1,
+              unitCost: defaultProd?.cost || 0,
+            },
           ],
         },
       });
@@ -472,7 +494,7 @@ export const AppModals = ({
                         value={it.productId}
                         onChange={(e) => updateItem(idx, "productId", e.target.value)}
                       >
-                        {products.map((p) => (
+                        {stockTrackedProducts.map((p) => (
                           <option key={p.id} value={p.id}>
                             {p.name} (Stock: {p.stock})
                           </option>

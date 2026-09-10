@@ -3,7 +3,7 @@ import { Check } from "lucide-react";
 
 // Seed data & helpers
 import { CATEGORIES, initialProducts, initialUsers, seedTransactions, seedGrns, seedExpenses, EXPENSE_CATEGORIES } from "./src/data/seedData";
-import { daysAgo, isToday, isWithinDays, stockStatus } from "./src/utils/helpers";
+import { daysAgo, isToday, isWithinDays, stockStatus, isStockTracked } from "./src/utils/helpers";
 
 // UI Components
 import { GlobalStyle } from "./src/components/ui/GlobalStyle";
@@ -108,7 +108,7 @@ export default function BarakahPOS() {
   /* -------------------------- derived data -------------------------- */
   const activeProducts = products.filter((p) => p.status === "Active");
   const lowStockProducts = products.filter(
-    (p) => stockStatus(p) === "Low Stock" || stockStatus(p) === "Out of Stock"
+    (p) => isStockTracked(p) && (stockStatus(p) === "Low Stock" || stockStatus(p) === "Out of Stock")
   );
   const todaysTxns = transactions.filter((t) => isToday(t.createdAt));
   const todayRevenue = todaysTxns.reduce((s, t) => s + t.total, 0);
@@ -196,12 +196,13 @@ export default function BarakahPOS() {
       type: "productForm",
       mode,
       data: product
-        ? { ...product }
+        ? { ...product, inventoryType: product.inventoryType || "STOCK_TRACKED" }
         : {
             name: "",
             sku: "",
             barcode: "",
             category: CATEGORIES[0],
+            inventoryType: "STOCK_TRACKED",
             price: "",
             cost: "",
             stock: "",
@@ -213,21 +214,23 @@ export default function BarakahPOS() {
     });
   const saveProduct = () => {
     const d = modal.data;
-    if (!d.name.trim() || d.price === "" || d.stock === "") {
-      showToast("Unable to save the product. Please try again.");
+    const isTracked = (d.inventoryType || "STOCK_TRACKED") === "STOCK_TRACKED";
+    if (!d.name.trim() || d.price === "" || (isTracked && d.stock === "")) {
+      showToast("Unable to save the product. Please enter required fields.");
       return;
     }
     const payload = {
       ...d,
+      inventoryType: d.inventoryType || "STOCK_TRACKED",
       price: +d.price,
       cost: +d.cost || 0,
-      stock: +d.stock,
-      lowStockThreshold: +d.lowStockThreshold || 0,
+      stock: isTracked ? +d.stock : 0,
+      lowStockThreshold: isTracked ? +d.lowStockThreshold || 0 : 0,
     };
     if (modal.mode === "add") setProducts((p) => [...p, { ...payload, id: "p" + Date.now() }]);
     else setProducts((p) => p.map((x) => (x.id === payload.id ? payload : x)));
     setModal(null);
-    showToast("Product created successfully.");
+    showToast("Product saved successfully.");
   };
   const confirmDeactivateProduct = (product) => setModal({ type: "confirmDeactivateProduct", product });
   const deactivateProduct = () => {
@@ -440,10 +443,11 @@ export default function BarakahPOS() {
 
   const addToCart = (product) => {
     setCartError("");
+    const tracked = isStockTracked(product);
     setCart((c) => {
       const existing = c.find((i) => i.productId === product.id);
       if (existing) {
-        if (existing.qty + 1 > product.stock) {
+        if (tracked && existing.qty + 1 > product.stock) {
           setCartError(`Only ${product.stock} units available.`);
           return c;
         }
@@ -453,7 +457,7 @@ export default function BarakahPOS() {
             : i
         );
       }
-      if (product.stock < 1) {
+      if (tracked && product.stock < 1) {
         setCartError("Out of stock.");
         return c;
       }
@@ -462,13 +466,14 @@ export default function BarakahPOS() {
   };
   const changeQty = (productId, delta) => {
     const product = products.find((p) => p.id === productId);
+    const tracked = isStockTracked(product);
     setCartError("");
     setCart((c) =>
       c.map((i) => {
         if (i.productId !== productId) return i;
         const nextQty = i.qty + delta;
         if (nextQty < 1) return i;
-        if (nextQty > product.stock) {
+        if (tracked && nextQty > product.stock) {
           setCartError(`Only ${product.stock} units available.`);
           return i;
         }
@@ -507,7 +512,7 @@ export default function BarakahPOS() {
   const resumeHeldBill = (bill) => {
     const shortages = bill.items.filter((i) => {
       const product = products.find((p) => p.id === i.productId);
-      return !product || product.stock < i.qty;
+      return isStockTracked(product) && (!product || product.stock < i.qty);
     });
     if (shortages.length > 0) {
       setModal({ type: "stockShortage", bill, shortages });
@@ -533,7 +538,7 @@ export default function BarakahPOS() {
     }
     const shortages = cart.filter((i) => {
       const p = products.find((pp) => pp.id === i.productId);
-      return !p || p.stock < i.qty;
+      return isStockTracked(p) && (!p || p.stock < i.qty);
     });
     if (shortages.length > 0) {
       setCartError(
@@ -562,7 +567,7 @@ export default function BarakahPOS() {
       setProducts((ps) =>
         ps.map((p) => {
           const item = cart.find((i) => i.productId === p.id);
-          return item ? { ...p, stock: p.stock - item.qty } : p;
+          return item && isStockTracked(p) ? { ...p, stock: Math.max(0, p.stock - item.qty) } : p;
         })
       );
       setInvoiceSeq((n) => n + 1);

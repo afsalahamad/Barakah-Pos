@@ -46,13 +46,13 @@ export const LoginScreen = ({
             {loginError}
           </div>
         )}
-        <Field label="Username or email" required>
+        <Field label="Username" required>
           <input
             className={inputCls}
-            placeholder={role === "ADMIN" ? "admin@barakah.pos" : "john@barakah.pos"}
+            placeholder={role === "ADMIN" ? "admin" : "john"}
             value={loginUsername}
             onChange={(e) => setLoginUsername(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleLogin(role, loginUsername)}
+            onKeyDown={(e) => e.key === "Enter" && handleLogin(role, loginUsername, loginPassword)}
           />
         </Field>
         <Field label="Password" required>
@@ -63,7 +63,7 @@ export const LoginScreen = ({
               placeholder="••••••••"
               value={loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLogin(role, loginUsername)}
+              onKeyDown={(e) => e.key === "Enter" && handleLogin(role, loginUsername, loginPassword)}
             />
             <button
               type="button"
@@ -80,11 +80,11 @@ export const LoginScreen = ({
           </label>
           <button className="text-emerald-800 hover:underline">Forgot password?</button>
         </div>
-        <PrimaryBtn className="w-full" onClick={() => handleLogin(role, loginUsername)}>
+        <PrimaryBtn className="w-full" onClick={() => handleLogin(role, loginUsername, loginPassword)}>
           Log in
         </PrimaryBtn>
         <p className="text-stone-400 text-xs mt-4 text-center">
-          Demo: try "{role === "ADMIN" ? "admin@barakah.pos" : "john@barakah.pos"}" with any password.
+          Demo login: username "{role === "ADMIN" ? "admin" : "john"}" & password "{role === "ADMIN" ? "admin123" : "john123"}".
         </p>
       </div>
     </div>

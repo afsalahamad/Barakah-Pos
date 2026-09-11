@@ -1,4 +1,4 @@
-export const money = (n) => `$${Number(n).toFixed(2)}`;
+export const money = (n) => `Rs. ${Number(n).toFixed(2)}`;
 
 export const fmtDate = (ts) =>
   new Date(ts).toLocaleDateString(undefined, { day: "2-digit", month: "short", year: "numeric" });

@@ -18,9 +18,9 @@ export const initialProducts = [
 ];
 
 export const initialUsers = [
-  { id: "u1", name: "Admin User", username: "admin@barakah.pos", role: "ADMIN", status: "Active", createdAt: daysAgo(120) },
-  { id: "u2", name: "John Mensah", username: "john@barakah.pos", role: "CASHIER", status: "Active", createdAt: daysAgo(60) },
-  { id: "u3", name: "Sara Yusuf", username: "sara@barakah.pos", role: "CASHIER", status: "Active", createdAt: daysAgo(30) },
+  { id: "u1", name: "Admin User", username: "admin", password: "admin123", role: "ADMIN", status: "Active", createdAt: daysAgo(120) },
+  { id: "u2", name: "John Mensah", username: "john", password: "john123", role: "CASHIER", status: "Active", createdAt: daysAgo(60) },
+  { id: "u3", name: "Sara Yusuf", username: "sara", password: "sara123", role: "CASHIER", status: "Active", createdAt: daysAgo(30) },
 ];
 
 const seedItem = (p, qty) => ({ productId: p.id, name: p.name, price: p.price, qty, lineTotal: +(p.price * qty).toFixed(2) });

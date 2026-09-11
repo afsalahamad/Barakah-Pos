@@ -212,8 +212,8 @@ export const AppModals = ({
         <Field label="Full name" required>
           <input className={inputCls} value={d.name} onChange={(e) => set("name", e.target.value)} />
         </Field>
-        <Field label="Username / email" required>
-          <input className={inputCls} value={d.username} onChange={(e) => set("username", e.target.value)} />
+        <Field label="Username" required>
+          <input className={inputCls} value={d.username} onChange={(e) => set("username", e.target.value)} placeholder="e.g. john" />
         </Field>
         <Field label="Role">
           <select className={inputCls} value={d.role} onChange={(e) => set("role", e.target.value)}>
@@ -227,11 +227,15 @@ export const AppModals = ({
             <option>Inactive</option>
           </select>
         </Field>
-        {modal.mode === "add" && (
-          <Field label="Temporary password" required>
-            <input type="password" className={inputCls} placeholder="••••••••" />
-          </Field>
-        )}
+        <Field label="Password" required={modal.mode === "add"}>
+          <input
+            type="password"
+            className={inputCls}
+            placeholder="••••••••"
+            value={d.password || ""}
+            onChange={(e) => set("password", e.target.value)}
+          />
+        </Field>
       </Modal>
     );
   }

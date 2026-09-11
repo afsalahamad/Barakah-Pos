@@ -27,7 +27,7 @@ export const Users = ({
           <Search size={16} className="absolute left-3 top-2.5 text-stone-400" />
           <input
             className={inputCls + " pl-9"}
-            placeholder="Search name or email"
+            placeholder="Search name or username"
             value={userSearch}
             onChange={(e) => setUserSearch(e.target.value)}
           />
@@ -50,7 +50,7 @@ export const Users = ({
           <thead>
             <tr className="border-b border-stone-100">
               <Th>Name</Th>
-              <Th>Username / email</Th>
+              <Th>Username</Th>
               <Th>Role</Th>
               <Th>Status</Th>
               <Th>Created</Th>

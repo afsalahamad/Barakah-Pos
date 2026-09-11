@@ -4,6 +4,26 @@ import { Check } from "lucide-react";
 // Seed data & helpers
 import { CATEGORIES, initialProducts, initialUsers, seedTransactions, seedGrns, seedExpenses, EXPENSE_CATEGORIES } from "./src/data/seedData";
 import { daysAgo, isToday, isWithinDays, stockStatus, isStockTracked } from "./src/utils/helpers";
+import {
+  isSupabaseConfigured,
+  dbFetchProducts,
+  dbSaveProduct,
+  dbUpdateProductStock,
+  dbFetchTransactions,
+  dbCreateTransaction,
+  dbFetchExpenses,
+  dbCreateExpense,
+  dbFetchUsers,
+  dbAuthenticateUser,
+  dbSaveUser,
+  dbFetchGrns,
+  dbCreateGrn,
+  dbFetchHeldBills,
+  dbSaveHeldBill,
+  dbDeleteHeldBill,
+  dbFetchStockMovements,
+  dbCreateStockMovement,
+} from "./src/services/supabaseService";
 
 // UI Components
 import { GlobalStyle } from "./src/components/ui/GlobalStyle";
@@ -58,12 +78,26 @@ export default function BarakahPOS() {
   const [grnSeq, setGrnSeq] = useState(3);
   const [expenseSeq, setExpenseSeq] = useState(3);
 
+  // Load all data from Supabase if configured
+  useEffect(() => {
+    if (isSupabaseConfigured()) {
+      dbFetchProducts().then((res) => res && setProducts(res));
+      dbFetchTransactions().then((res) => res && setTransactions(res));
+      dbFetchExpenses().then((res) => res && setExpenses(res));
+      dbFetchUsers().then((res) => res && setUsers(res));
+      dbFetchGrns().then((res) => res && setGrns(res));
+      dbFetchHeldBills().then((res) => res && setHeldBills(res));
+      dbFetchStockMovements().then((res) => res && setStockMovements(res));
+    }
+  }, []);
+
+
   const [business, setBusiness] = useState({
     name: "Barakah Mart",
     address: "14 Crescent Road, Colombo",
     phone: "+94 77 123 4567",
     email: "hello@barakahmart.lk",
-    currency: "USD",
+    currency: "Rs.",
     receiptHeader: "Thank you for shopping with us.",
     receiptFooter: "Thank you for your business.",
     invoicePrefix: "INV-2026",
@@ -144,32 +178,51 @@ export default function BarakahPOS() {
   const rangeTxns = transactions.filter((t) => isWithinDays(t.createdAt, rangeDays));
 
   /* -------------------------- auth -------------------------- */
-  const handleLogin = (role, username) => {
-    const user = users.find(
-      (u) => u.username.toLowerCase() === username.toLowerCase() || u.name.toLowerCase() === username.toLowerCase()
-    );
+  const handleLogin = async (role, username, password = "") => {
     if (!username.trim()) {
-      setLoginError("Enter your username or email.");
+      setLoginError("Please enter your username.");
       return;
     }
-    if (user && user.status === "Inactive") {
+    if (!password.trim()) {
+      setLoginError("Please enter your password.");
+      return;
+    }
+
+    let user = null;
+    if (isSupabaseConfigured()) {
+      user = await dbAuthenticateUser(username, password);
+      if (!user) {
+        setLoginError("Invalid username or password.");
+        return;
+      }
+    } else {
+      user = users.find(
+        (u) =>
+          u.username.toLowerCase() === username.trim().toLowerCase() ||
+          u.name.toLowerCase() === username.trim().toLowerCase()
+      );
+      if (user && user.password && user.password !== password) {
+        setLoginError("Invalid password.");
+        return;
+      }
+    }
+
+    const resolvedUser = user;
+    if (!resolvedUser) {
+      setLoginError("Invalid username or password.");
+      return;
+    }
+    if (resolvedUser.status === "Inactive") {
       setLoginError("This account has been deactivated. Contact an admin.");
       return;
     }
-    if (user && user.role !== role) {
-      setLoginError(`That account is a ${user.role.toLowerCase()} account — redirecting you to the right login.`);
-      setTimeout(() => {
-        setLoginError("");
-        setScreen(user.role === "ADMIN" ? "login-admin" : "login-cashier");
-      }, 900);
-      return;
-    }
-    const resolvedUser = user || (role === "ADMIN" ? users[0] : users[1]);
+
+    const userRole = resolvedUser.role || role;
     setCurrentUser(resolvedUser);
     setLoginError("");
     setLoginUsername("");
     setLoginPassword("");
-    setScreen(role === "ADMIN" ? "admin" : "cashier");
+    setScreen(userRole === "ADMIN" ? "admin" : "cashier");
     setAdminView("dashboard");
     setCashierView("billing");
   };
@@ -227,8 +280,14 @@ export default function BarakahPOS() {
       stock: isTracked ? +d.stock : 0,
       lowStockThreshold: isTracked ? +d.lowStockThreshold || 0 : 0,
     };
-    if (modal.mode === "add") setProducts((p) => [...p, { ...payload, id: "p" + Date.now() }]);
-    else setProducts((p) => p.map((x) => (x.id === payload.id ? payload : x)));
+    if (modal.mode === "add") {
+      const newP = { ...payload, id: "p" + Date.now() };
+      setProducts((p) => [...p, newP]);
+      dbSaveProduct(newP, true);
+    } else {
+      setProducts((p) => p.map((x) => (x.id === payload.id ? payload : x)));
+      dbSaveProduct(payload, false);
+    }
     setModal(null);
     showToast("Product saved successfully.");
   };
@@ -253,20 +312,22 @@ export default function BarakahPOS() {
     const change = adjType === "Remove Stock" ? -q : adjType === "Correction" ? q - product.stock : q;
     const newStock = adjType === "Correction" ? q : Math.max(0, product.stock + change);
     setProducts((ps) => ps.map((p) => (p.id === product.id ? { ...p, stock: newStock } : p)));
-    setStockMovements((m) => [
-      {
-        id: "m" + Date.now(),
-        productId: product.id,
-        productName: product.name,
-        movementType: adjType,
-        oldStock: product.stock,
-        newStock,
-        reason,
-        admin: currentUser.name,
-        date: Date.now(),
-      },
-      ...m,
-    ]);
+    dbUpdateProductStock(product.id, newStock);
+
+    const movement = {
+      id: "m" + Date.now(),
+      productId: product.id,
+      productName: product.name,
+      movementType: adjType,
+      oldStock: product.stock,
+      newStock,
+      reason,
+      admin: currentUser?.name || "Admin User",
+      date: Date.now(),
+    };
+
+    setStockMovements((m) => [movement, ...m]);
+    dbCreateStockMovement(movement);
     setModal(null);
     showToast("Stock updated.");
   };
@@ -281,13 +342,19 @@ export default function BarakahPOS() {
   const saveUser = () => {
     const d = modal.data;
     if (!d.name.trim() || !d.username.trim()) {
-      showToast("Enter a name and username/email.");
+      showToast("Enter a name and username.");
       return;
     }
-    if (modal.mode === "add") setUsers((u) => [...u, { ...d, id: "u" + Date.now(), createdAt: Date.now() }]);
-    else setUsers((u) => u.map((x) => (x.id === d.id ? d : x)));
+    if (modal.mode === "add") {
+      const newUser = { ...d, id: "u" + Date.now(), createdAt: Date.now() };
+      setUsers((u) => [...u, newUser]);
+      dbSaveUser(newUser, true);
+    } else {
+      setUsers((u) => u.map((x) => (x.id === d.id ? d : x)));
+      dbSaveUser(d, false);
+    }
     setModal(null);
-    showToast("User saved.");
+    showToast("User saved successfully.");
   };
   const confirmDeactivateUser = (user) => setModal({ type: "confirmDeactivateUser", user });
   const toggleUserStatus = () => {
@@ -372,7 +439,12 @@ export default function BarakahPOS() {
     setProducts((ps) =>
       ps.map((p) => {
         const item = formattedItems.find((it) => it.productId === p.id);
-        return item ? { ...p, stock: p.stock + item.receivedQty } : p;
+        if (item) {
+          const nextStock = p.stock + item.receivedQty;
+          dbUpdateProductStock(p.id, nextStock);
+          return { ...p, stock: nextStock };
+        }
+        return p;
       })
     );
 
@@ -395,6 +467,7 @@ export default function BarakahPOS() {
 
     setStockMovements((m) => [...newMovements, ...m]);
     setGrns((g) => [newGrn, ...g]);
+    dbCreateGrn(newGrn);
     setGrnSeq((n) => n + 1);
     setModal(null);
     showToast(`GRN created (${grnNumber}) and stock updated successfully.`);
@@ -431,6 +504,7 @@ export default function BarakahPOS() {
     };
 
     setExpenses((e) => [newExpense, ...e]);
+    dbCreateExpense(newExpense);
     setExpenseSeq((n) => n + 1);
     setModal(null);
     showToast(`Expense ${expenseNumber} saved successfully.`);
@@ -504,6 +578,7 @@ export default function BarakahPOS() {
       createdAt: Date.now(),
     };
     setHeldBills((h) => [bill, ...h]);
+    dbSaveHeldBill(bill);
     setHoldSeq((n) => n + 1);
     clearCart();
     showToast(`Bill held as ${bill.holdReference}.`);
@@ -521,12 +596,14 @@ export default function BarakahPOS() {
     setCart(bill.items);
     setCartNote(bill.notes || "");
     setHeldBills((h) => h.filter((b) => b.id !== bill.id));
+    dbDeleteHeldBill(bill.id);
     setCashierView("billing");
     showToast(`Resumed ${bill.holdReference}.`);
   };
   const cancelHeldBill = (bill) => setModal({ type: "confirmCancelHeld", bill });
   const removeHeldBill = () => {
     setHeldBills((h) => h.filter((b) => b.id !== modal.bill.id));
+    if (modal?.bill?.id) dbDeleteHeldBill(modal.bill.id);
     setModal(null);
   };
 
@@ -564,10 +641,16 @@ export default function BarakahPOS() {
         createdAt: Date.now(),
       };
       setTransactions((t) => [txn, ...t]);
+      dbCreateTransaction(txn);
       setProducts((ps) =>
         ps.map((p) => {
           const item = cart.find((i) => i.productId === p.id);
-          return item && isStockTracked(p) ? { ...p, stock: Math.max(0, p.stock - item.qty) } : p;
+          if (item && isStockTracked(p)) {
+            const nextStock = Math.max(0, p.stock - item.qty);
+            dbUpdateProductStock(p.id, nextStock);
+            return { ...p, stock: nextStock };
+          }
+          return p;
         })
       );
       setInvoiceSeq((n) => n + 1);

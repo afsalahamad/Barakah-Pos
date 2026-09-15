@@ -83,56 +83,58 @@ export const GRN = ({ grns, openGrnForm, viewGrnDetails }) => {
 
       {/* GRN Table */}
       <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
-        <table className="w-full text-left border-collapse">
-          <thead>
-            <tr className="border-b border-stone-200 bg-stone-50">
-              <Th>GRN Number</Th>
-              <Th>Supplier</Th>
-              <Th>Ref / Inv #</Th>
-              <Th>Items Count</Th>
-              <Th>Total Cost</Th>
-              <Th>Created By</Th>
-              <Th>Date</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-100">
-            {filteredGrns.map((g) => {
-              const itemTypesCount = g.items.length;
-              const totalQty = g.items.reduce((acc, it) => acc + it.receivedQty, 0);
-              return (
-                <tr key={g.id} className="hover:bg-stone-50/60 transition">
-                  <Td className="font-mono font-semibold text-stone-900">{g.grnNumber}</Td>
-                  <Td className="font-medium text-stone-800">{g.supplier}</Td>
-                  <Td className="text-stone-500 text-xs font-mono">{g.supplierRef || "N/A"}</Td>
-                  <Td className="text-stone-700">
-                    <span className="font-medium">{totalQty} units</span>{" "}
-                    <span className="text-xs text-stone-400">({itemTypesCount} items)</span>
-                  </Td>
-                  <Td className="font-display font-bold text-emerald-800">{money(g.totalCost)}</Td>
-                  <Td className="text-stone-700">{g.createdBy}</Td>
-                  <Td className="text-xs text-stone-500">{new Date(g.createdAt).toLocaleDateString()}</Td>
-                  <Td>
-                    <Badge text={g.status || "Completed"} tone="emerald" />
-                  </Td>
-                  <Td>
-                    <GhostBtn onClick={() => viewGrnDetails(g)} className="text-xs py-1 px-2.5">
-                      <Eye size={14} /> View
-                    </GhostBtn>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full text-left border-collapse">
+            <thead>
+              <tr className="border-b border-stone-200 bg-stone-50">
+                <Th>GRN Number</Th>
+                <Th>Supplier</Th>
+                <Th>Ref / Inv #</Th>
+                <Th>Items Count</Th>
+                <Th>Total Cost</Th>
+                <Th>Created By</Th>
+                <Th>Date</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-stone-100">
+              {filteredGrns.map((g) => {
+                const itemTypesCount = g.items.length;
+                const totalQty = g.items.reduce((acc, it) => acc + it.receivedQty, 0);
+                return (
+                  <tr key={g.id} className="hover:bg-stone-50/60 transition">
+                    <Td className="font-mono font-semibold text-stone-900">{g.grnNumber}</Td>
+                    <Td className="font-medium text-stone-800">{g.supplier}</Td>
+                    <Td className="text-stone-500 text-xs font-mono">{g.supplierRef || "N/A"}</Td>
+                    <Td className="text-stone-700">
+                      <span className="font-medium">{totalQty} units</span>{" "}
+                      <span className="text-xs text-stone-400">({itemTypesCount} items)</span>
+                    </Td>
+                    <Td className="font-display font-bold text-emerald-800">{money(g.totalCost)}</Td>
+                    <Td className="text-stone-700">{g.createdBy}</Td>
+                    <Td className="text-xs text-stone-500">{new Date(g.createdAt).toLocaleDateString()}</Td>
+                    <Td>
+                      <Badge text={g.status || "Completed"} tone="emerald" />
+                    </Td>
+                    <Td>
+                      <GhostBtn onClick={() => viewGrnDetails(g)} className="text-xs py-1 px-2.5">
+                        <Eye size={14} /> View
+                      </GhostBtn>
+                    </Td>
+                  </tr>
+                );
+              })}
+              {filteredGrns.length === 0 && (
+                <tr>
+                  <Td colSpan={9} className="text-center text-stone-400 py-10">
+                    No Goods Received Notes match your search criteria.
                   </Td>
                 </tr>
-              );
-            })}
-            {filteredGrns.length === 0 && (
-              <tr>
-                <Td colSpan={9} className="text-center text-stone-400 py-10">
-                  No Goods Received Notes match your search criteria.
-                </Td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

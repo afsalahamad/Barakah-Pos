@@ -20,7 +20,7 @@ export const Dashboard = ({
   openProductForm,
 }) => (
   <div className="space-y-6">
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       <StatCard label="Today's revenue" value={money(todayRevenue)} tone="emerald" />
       <StatCard label="Today's transactions" value={todaysTxns.length} />
       <StatCard label="Items sold today" value={todayItemsSold} />
@@ -81,39 +81,41 @@ export const Dashboard = ({
             View all
           </button>
         </div>
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-stone-100">
-              <Th>Invoice</Th>
-              <Th>Cashier</Th>
-              <Th>Items</Th>
-              <Th>Amount</Th>
-              <Th>Status</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {transactions.slice(0, 5).map((t) => (
-              <tr
-                key={t.id}
-                className="border-b border-stone-50 hover:bg-stone-50 cursor-pointer"
-                onClick={() => setModal({ type: "transactionDetail", txn: t })}
-              >
-                <Td className="font-medium text-stone-900">
-                  {t.invoiceNumber}
-                  <div className="text-xs text-stone-400 font-normal">
-                    {fmtDate(t.createdAt)}, {fmtTime(t.createdAt)}
-                  </div>
-                </Td>
-                <Td>{t.cashierName}</Td>
-                <Td>{t.items.reduce((s, i) => s + i.qty, 0)} items</Td>
-                <Td className="font-medium">{money(t.total)}</Td>
-                <Td>
-                  <Badge text={t.status} />
-                </Td>
+        <div className="overflow-x-auto w-full">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-stone-100">
+                <Th>Invoice</Th>
+                <Th>Cashier</Th>
+                <Th>Items</Th>
+                <Th>Amount</Th>
+                <Th>Status</Th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {transactions.slice(0, 5).map((t) => (
+                <tr
+                  key={t.id}
+                  className="border-b border-stone-50 hover:bg-stone-50 cursor-pointer"
+                  onClick={() => setModal({ type: "transactionDetail", txn: t })}
+                >
+                  <Td className="font-medium text-stone-900">
+                    {t.invoiceNumber}
+                    <div className="text-xs text-stone-400 font-normal">
+                      {fmtDate(t.createdAt)}, {fmtTime(t.createdAt)}
+                    </div>
+                  </Td>
+                  <Td>{t.cashierName}</Td>
+                  <Td>{t.items.reduce((s, i) => s + i.qty, 0)} items</Td>
+                  <Td className="font-medium">{money(t.total)}</Td>
+                  <Td>
+                    <Badge text={t.status} />
+                  </Td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div className="bg-white border border-stone-200 rounded-lg p-4">
         <p className="font-display font-semibold text-stone-800 mb-3">Quick actions</p>

@@ -406,7 +406,7 @@ export const Reports = ({
           {/* 1. SALES REPORT VIEW */}
           {reportType === "Sales" && (
             <div className="space-y-4">
-              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 <StatCard label="Gross Revenue" value={money(grossRevenue)} tone="emerald" />
                 <StatCard label="Total Orders" value={totalOrders} />
                 <StatCard label="Items Sold" value={itemsSold} />
@@ -425,41 +425,43 @@ export const Reports = ({
                   </h3>
                   <span className="text-xs text-stone-400">{fromDate} to {toDate}</span>
                 </div>
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50">
-                      <Th>Invoice #</Th>
-                      <Th>Cashier</Th>
-                      <Th>Items Count</Th>
-                      <Th>Total Amount</Th>
-                      <Th>Payment</Th>
-                      <Th>Cash Received</Th>
-                      <Th>Change</Th>
-                      <Th>Date & Time</Th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {filteredTxns.map((t) => (
-                      <tr key={t.id} className="hover:bg-stone-50/60 transition text-xs">
-                        <Td className="font-mono font-semibold text-stone-900">{t.invoiceNumber}</Td>
-                        <Td className="text-stone-800">{t.cashierName}</Td>
-                        <Td className="text-stone-600">{t.items.reduce((a, i) => a + i.qty, 0)} items</Td>
-                        <Td className="font-display font-bold text-emerald-800">{money(t.total)}</Td>
-                        <Td className="text-stone-600">{t.paymentMethod || "Cash"}</Td>
-                        <Td className="text-stone-600">{money(t.cashReceived)}</Td>
-                        <Td className="text-stone-600">{money(t.change)}</Td>
-                        <Td className="text-stone-500">{new Date(t.createdAt).toLocaleString()}</Td>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-stone-200 bg-stone-50">
+                        <Th>Invoice #</Th>
+                        <Th>Cashier</Th>
+                        <Th>Items Count</Th>
+                        <Th>Total Amount</Th>
+                        <Th>Payment</Th>
+                        <Th>Cash Received</Th>
+                        <Th>Change</Th>
+                        <Th>Date & Time</Th>
                       </tr>
-                    ))}
-                    {filteredTxns.length === 0 && (
-                      <tr>
-                        <Td colSpan={8} className="text-center text-stone-400 py-10">
-                          No sales transactions found for the selected date range.
-                        </Td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {filteredTxns.map((t) => (
+                        <tr key={t.id} className="hover:bg-stone-50/60 transition text-xs">
+                          <Td className="font-mono font-semibold text-stone-900">{t.invoiceNumber}</Td>
+                          <Td className="text-stone-800">{t.cashierName}</Td>
+                          <Td className="text-stone-600">{t.items.reduce((a, i) => a + i.qty, 0)} items</Td>
+                          <Td className="font-display font-bold text-emerald-800">{money(t.total)}</Td>
+                          <Td className="text-stone-600">{t.paymentMethod || "Cash"}</Td>
+                          <Td className="text-stone-600">{money(t.cashReceived)}</Td>
+                          <Td className="text-stone-600">{money(t.change)}</Td>
+                          <Td className="text-stone-500">{new Date(t.createdAt).toLocaleString()}</Td>
+                        </tr>
+                      ))}
+                      {filteredTxns.length === 0 && (
+                        <tr>
+                          <Td colSpan={8} className="text-center text-stone-400 py-10">
+                            No sales transactions found for the selected date range.
+                          </Td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -473,35 +475,37 @@ export const Reports = ({
                 </h3>
                 <span className="text-xs text-stone-400">{fromDate} to {toDate}</span>
               </div>
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-stone-200 bg-stone-50">
-                    <Th>Product Name</Th>
-                    <Th>Units Sold</Th>
-                    <Th>Gross Revenue</Th>
-                    <Th>Estimated Cost</Th>
-                    <Th>Gross Profit</Th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-stone-100">
-                  {productSalesMap.map((p) => (
-                    <tr key={p.id} className="hover:bg-stone-50/60 transition text-xs">
-                      <Td className="font-medium text-stone-900">{p.name}</Td>
-                      <Td className="font-bold text-stone-800">{p.qty} units</Td>
-                      <Td className="font-display font-semibold text-stone-900">{money(p.revenue)}</Td>
-                      <Td className="text-stone-500">{money(p.cost)}</Td>
-                      <Td className="font-display font-bold text-emerald-800">{money(p.grossProfit)}</Td>
+              <div className="overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-stone-200 bg-stone-50">
+                      <Th>Product Name</Th>
+                      <Th>Units Sold</Th>
+                      <Th>Gross Revenue</Th>
+                      <Th>Estimated Cost</Th>
+                      <Th>Gross Profit</Th>
                     </tr>
-                  ))}
-                  {productSalesMap.length === 0 && (
-                    <tr>
-                      <Td colSpan={5} className="text-center text-stone-400 py-10">
-                        No product sales records found for the selected date range.
-                      </Td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {productSalesMap.map((p) => (
+                      <tr key={p.id} className="hover:bg-stone-50/60 transition text-xs">
+                        <Td className="font-medium text-stone-900">{p.name}</Td>
+                        <Td className="font-bold text-stone-800">{p.qty} units</Td>
+                        <Td className="font-display font-semibold text-stone-900">{money(p.revenue)}</Td>
+                        <Td className="text-stone-500">{money(p.cost)}</Td>
+                        <Td className="font-display font-bold text-emerald-800">{money(p.grossProfit)}</Td>
+                      </tr>
+                    ))}
+                    {productSalesMap.length === 0 && (
+                      <tr>
+                        <Td colSpan={5} className="text-center text-stone-400 py-10">
+                          No product sales records found for the selected date range.
+                        </Td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
@@ -525,41 +529,43 @@ export const Reports = ({
               </div>
 
               <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50">
-                      <Th>Expense ID</Th>
-                      <Th>Category</Th>
-                      <Th>Amount</Th>
-                      <Th>Note / Description</Th>
-                      <Th>Recorded By</Th>
-                      <Th>Date & Time</Th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {filteredExpenses.map((exp) => (
-                      <tr key={exp.id} className="hover:bg-stone-50/60 transition text-xs">
-                        <Td className="font-mono font-semibold text-stone-900">{exp.expenseNumber}</Td>
-                        <Td>
-                          <span className="inline-flex items-center gap-1 text-xs font-medium text-stone-700 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded">
-                            <Tag size={11} className="text-emerald-700" /> {exp.category}
-                          </span>
-                        </Td>
-                        <Td className="font-display font-bold text-rose-700">{money(exp.amount)}</Td>
-                        <Td className="text-stone-700 max-w-xs truncate">{exp.note || "-"}</Td>
-                        <Td className="text-stone-800">{exp.cashierName}</Td>
-                        <Td className="text-stone-500">{new Date(exp.createdAt).toLocaleString()}</Td>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-stone-200 bg-stone-50">
+                        <Th>Expense ID</Th>
+                        <Th>Category</Th>
+                        <Th>Amount</Th>
+                        <Th>Note / Description</Th>
+                        <Th>Recorded By</Th>
+                        <Th>Date & Time</Th>
                       </tr>
-                    ))}
-                    {filteredExpenses.length === 0 && (
-                      <tr>
-                        <Td colSpan={6} className="text-center text-stone-400 py-10">
-                          No expense records found for the selected date range.
-                        </Td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {filteredExpenses.map((exp) => (
+                        <tr key={exp.id} className="hover:bg-stone-50/60 transition text-xs">
+                          <Td className="font-mono font-semibold text-stone-900">{exp.expenseNumber}</Td>
+                          <Td>
+                            <span className="inline-flex items-center gap-1 text-xs font-medium text-stone-700 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded">
+                              <Tag size={11} className="text-emerald-700" /> {exp.category}
+                            </span>
+                          </Td>
+                          <Td className="font-display font-bold text-rose-700">{money(exp.amount)}</Td>
+                          <Td className="text-stone-700 max-w-xs truncate">{exp.note || "-"}</Td>
+                          <Td className="text-stone-800">{exp.cashierName}</Td>
+                          <Td className="text-stone-500">{new Date(exp.createdAt).toLocaleString()}</Td>
+                        </tr>
+                      ))}
+                      {filteredExpenses.length === 0 && (
+                        <tr>
+                          <Td colSpan={6} className="text-center text-stone-400 py-10">
+                            No expense records found for the selected date range.
+                          </Td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}
@@ -574,41 +580,43 @@ export const Reports = ({
               </div>
 
               <div className="bg-white border border-stone-200 rounded-lg overflow-hidden">
-                <table className="w-full text-left border-collapse">
-                  <thead>
-                    <tr className="border-b border-stone-200 bg-stone-50">
-                      <Th>GRN Number</Th>
-                      <Th>Supplier</Th>
-                      <Th>Ref / Inv #</Th>
-                      <Th>Received Items</Th>
-                      <Th>Total Purchase Cost</Th>
-                      <Th>Created By</Th>
-                      <Th>Date</Th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-stone-100">
-                    {filteredGrns.map((g) => (
-                      <tr key={g.id} className="hover:bg-stone-50/60 transition text-xs">
-                        <Td className="font-mono font-semibold text-stone-900">{g.grnNumber}</Td>
-                        <Td className="font-medium text-stone-800">{g.supplier}</Td>
-                        <Td className="text-stone-500 font-mono">{g.supplierRef || "-"}</Td>
-                        <Td className="text-stone-700">
-                          {g.items.reduce((a, i) => a + i.receivedQty, 0)} units ({g.items.length} products)
-                        </Td>
-                        <Td className="font-display font-bold text-emerald-800">{money(g.totalCost)}</Td>
-                        <Td className="text-stone-700">{g.createdBy}</Td>
-                        <Td className="text-stone-500">{new Date(g.createdAt).toLocaleDateString()}</Td>
+                <div className="overflow-x-auto w-full">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="border-b border-stone-200 bg-stone-50">
+                        <Th>GRN Number</Th>
+                        <Th>Supplier</Th>
+                        <Th>Ref / Inv #</Th>
+                        <Th>Received Items</Th>
+                        <Th>Total Purchase Cost</Th>
+                        <Th>Created By</Th>
+                        <Th>Date</Th>
                       </tr>
-                    ))}
-                    {filteredGrns.length === 0 && (
-                      <tr>
-                        <Td colSpan={7} className="text-center text-stone-400 py-10">
-                          No Goods Received Notes found for the selected date range.
-                        </Td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody className="divide-y divide-stone-100">
+                      {filteredGrns.map((g) => (
+                        <tr key={g.id} className="hover:bg-stone-50/60 transition text-xs">
+                          <Td className="font-mono font-semibold text-stone-900">{g.grnNumber}</Td>
+                          <Td className="font-medium text-stone-800">{g.supplier}</Td>
+                          <Td className="text-stone-500 font-mono">{g.supplierRef || "-"}</Td>
+                          <Td className="text-stone-700">
+                            {g.items.reduce((a, i) => a + i.receivedQty, 0)} units ({g.items.length} products)
+                          </Td>
+                          <Td className="font-display font-bold text-emerald-800">{money(g.totalCost)}</Td>
+                          <Td className="text-stone-700">{g.createdBy}</Td>
+                          <Td className="text-stone-500">{new Date(g.createdAt).toLocaleDateString()}</Td>
+                        </tr>
+                      ))}
+                      {filteredGrns.length === 0 && (
+                        <tr>
+                          <Td colSpan={7} className="text-center text-stone-400 py-10">
+                            No Goods Received Notes found for the selected date range.
+                          </Td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

@@ -1,13 +1,13 @@
 import React, { useState } from "react";
 import { Search, Plus, Receipt, Tag, User, Calendar } from "lucide-react";
 import { EXPENSE_CATEGORIES } from "../../data/seedData";
-import { money, isToday } from "../../utils/helpers";
+import { money } from "../../utils/helpers";
 import { GoldBtn } from "../ui/Buttons";
 import { inputCls } from "../ui/FormElements";
 import { Th, Td } from "../ui/TableElements";
 
 export const ExpensesView = ({
-  expenses,
+  expenses = [],
   openExpenseForm,
   currentUser,
   isAdmin = false,
@@ -21,27 +21,40 @@ export const ExpensesView = ({
     year: "numeric",
   });
 
-  // Role-based visibility:
-  // Admin -> View all expenses (historical & all cashiers)
-  // Cashier -> View TODAY'S expenses only for the logged-in cashier context
-  const userExpenses = isAdmin
-    ? expenses
-    : expenses.filter(
-        (e) =>
-          isToday(e.createdAt) &&
-          (e.cashierId === currentUser?.id || !e.cashierId)
-      );
+  // Dynamic Local Business Date Checker
+  const checkIsToday = (dateValue) => {
+    if (!dateValue) return false;
+    const expenseDate = new Date(dateValue);
+    const today = new Date();
+    return (
+      expenseDate.getFullYear() === today.getFullYear() &&
+      expenseDate.getMonth() === today.getMonth() &&
+      expenseDate.getDate() === today.getDate()
+    );
+  };
 
-  const filteredExpenses = userExpenses.filter((e) => {
+  const isCashier = currentUser?.role === "CASHIER" || !isAdmin;
+
+  // Strict Role-Based Visibility:
+  // CASHIER -> ONLY view expenses from the current local business date (isToday)
+  // ADMIN -> View full expense history
+  const visibleExpenses = isCashier
+    ? expenses.filter((e) => checkIsToday(e.createdAt || e.created_at || e.date))
+    : expenses;
+
+  const filteredExpenses = visibleExpenses.filter((e) => {
     const matchSearch =
-      e.expenseNumber.toLowerCase().includes(search.toLowerCase()) ||
-      e.note.toLowerCase().includes(search.toLowerCase()) ||
-      e.cashierName.toLowerCase().includes(search.toLowerCase());
+      (e.expenseNumber || "").toLowerCase().includes(search.toLowerCase()) ||
+      (e.note || "").toLowerCase().includes(search.toLowerCase()) ||
+      (e.cashierName || "").toLowerCase().includes(search.toLowerCase());
     const matchCat = categoryFilter === "All" || e.category === categoryFilter;
     return matchSearch && matchCat;
   });
 
-  const totalExpenseAmount = userExpenses.reduce((s, e) => s + e.amount, 0);
+  const totalExpenseAmount = visibleExpenses.reduce(
+    (s, e) => s + Number(e.amount || 0),
+    0
+  );
 
   return (
     <div className="space-y-4">
@@ -50,25 +63,25 @@ export const ExpensesView = ({
         <div>
           <h2 className="font-display font-bold text-xl text-stone-900 flex items-center gap-2">
             <Receipt className="text-emerald-800" size={24} />
-            {isAdmin ? "Operational Expenses" : "Today's Expenses"}
+            {isCashier ? "Today's Expenses" : "Operational Expenses"}
           </h2>
           <p className="text-stone-500 text-sm mt-0.5 flex items-center gap-1.5">
-            {isAdmin ? (
-              "Track store operational expenses recorded across all terminals."
-            ) : (
+            {isCashier ? (
               <>
                 <Calendar size={14} className="text-emerald-700 shrink-0" />
                 <span className="font-medium text-stone-700">{todayDateStr}</span>
                 <span className="text-stone-400">•</span>
                 <span>Record and manage shop expenses incurred today.</span>
               </>
+            ) : (
+              "Track store operational expenses recorded across all terminals."
             )}
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="bg-emerald-50 border border-emerald-200/60 rounded-lg px-4 py-2 text-right">
             <p className="text-xs text-emerald-700 font-medium">
-              {isAdmin ? "Total Listed Expenses" : "Today's Total Expenses"}
+              {isCashier ? "Today's Total Expenses" : "Total Listed Expenses"}
             </p>
             <p className="font-display font-bold text-lg text-emerald-900">
               {money(totalExpenseAmount)}
@@ -109,7 +122,7 @@ export const ExpensesView = ({
       </div>
 
       {/* Empty State for Cashier when no expenses today */}
-      {!isAdmin && userExpenses.length === 0 ? (
+      {isCashier && visibleExpenses.length === 0 ? (
         <div className="bg-white border border-stone-200 rounded-lg p-12 text-center flex flex-col items-center justify-center">
           <div className="w-12 h-12 rounded-full bg-stone-100 flex items-center justify-center text-stone-400 mb-3">
             <Receipt size={24} />
@@ -144,7 +157,7 @@ export const ExpensesView = ({
               {filteredExpenses.map((exp) => (
                 <tr key={exp.id} className="hover:bg-stone-50/60 transition">
                   <Td className="font-mono font-semibold text-stone-900">
-                    {exp.expenseNumber}
+                    {exp.expenseNumber || exp.id}
                   </Td>
                   <Td>
                     <span className="inline-flex items-center gap-1 text-xs font-medium text-stone-700 bg-stone-100 border border-stone-200 px-2 py-0.5 rounded">
@@ -159,11 +172,11 @@ export const ExpensesView = ({
                   </Td>
                   <Td>
                     <span className="flex items-center gap-1.5 text-stone-800 text-sm">
-                      <User size={13} className="text-stone-400" /> {exp.cashierName}
+                      <User size={13} className="text-stone-400" /> {exp.cashierName || "Staff"}
                     </span>
                   </Td>
                   <Td className="text-xs text-stone-500">
-                    {new Date(exp.createdAt).toLocaleString(undefined, {
+                    {new Date(exp.createdAt || exp.created_at || exp.date).toLocaleString(undefined, {
                       dateStyle: "short",
                       timeStyle: "short",
                     })}

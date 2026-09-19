@@ -154,7 +154,12 @@ export async function dbFetchExpenses(options = {}) {
     if (options.todayOnly) {
       const startOfToday = new Date();
       startOfToday.setHours(0, 0, 0, 0);
-      query = query.gte("created_at", startOfToday.toISOString());
+      const startOfTomorrow = new Date(startOfToday);
+      startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
+
+      query = query
+        .gte("created_at", startOfToday.toISOString())
+        .lt("created_at", startOfTomorrow.toISOString());
     }
 
     if (options.cashierId) {
@@ -162,16 +167,17 @@ export async function dbFetchExpenses(options = {}) {
     }
 
     const { data, error } = await query;
-    if (error || !data || data.length === 0) return seedExpenses;
+    if (error || !data) return seedExpenses;
+    if (data.length === 0) return [];
     return data.map((e) => ({
       id: e.id,
-      expenseNumber: e.expense_number || e.expenseNumber,
+      expenseNumber: e.expense_number || e.expenseNumber || e.id,
       category: e.category,
-      amount: e.amount,
-      note: e.note || "",
-      cashierId: e.cashier_id || e.cashierId,
-      cashierName: e.cashier_name || e.cashierName,
-      createdAt: e.created_at ? new Date(e.created_at).getTime() : e.createdAt,
+      amount: Number(e.amount) || 0,
+      note: e.note || e.description || "",
+      cashierId: e.cashier_id || e.cashierId || e.created_by,
+      cashierName: e.cashier_name || e.cashierName || "Staff",
+      createdAt: e.created_at ? new Date(e.created_at).getTime() : (e.createdAt || Date.now()),
     }));
   } catch (err) {
     console.error("Supabase fetchExpenses error:", err);

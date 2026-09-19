@@ -143,13 +143,25 @@ export async function dbCreateTransaction(txn) {
 /* ------------------------------------------------------------------
    EXPENSES
 ------------------------------------------------------------------ */
-export async function dbFetchExpenses() {
+export async function dbFetchExpenses(options = {}) {
   if (!isSupabaseConfigured()) return seedExpenses;
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from("expenses")
       .select("*")
       .order("created_at", { ascending: false });
+
+    if (options.todayOnly) {
+      const startOfToday = new Date();
+      startOfToday.setHours(0, 0, 0, 0);
+      query = query.gte("created_at", startOfToday.toISOString());
+    }
+
+    if (options.cashierId) {
+      query = query.eq("cashier_id", options.cashierId);
+    }
+
+    const { data, error } = await query;
     if (error || !data || data.length === 0) return seedExpenses;
     return data.map((e) => ({
       id: e.id,

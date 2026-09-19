@@ -13,7 +13,16 @@ export const daysAgo = (n, h = 9, m = 0) => {
   return d.getTime();
 };
 
-export const isToday = (ts) => new Date(ts).toDateString() === new Date().toDateString();
+export const isToday = (ts) => {
+  if (!ts) return false;
+  const d = new Date(ts);
+  const today = new Date();
+  return (
+    d.getDate() === today.getDate() &&
+    d.getMonth() === today.getMonth() &&
+    d.getFullYear() === today.getFullYear()
+  );
+};
 
 export const isWithinDays = (ts, n) => ts >= Date.now() - n * 86400000;
 

@@ -99,7 +99,7 @@ export const BillingDesk = ({
             </button>
           ))}
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2.5 overflow-y-auto pr-0.5 flex-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-3 gap-2.5 overflow-y-auto pr-0.5 flex-1 content-start items-start auto-rows-max">
           {posFiltered.map((p) => {
             const tracked = isStockTracked(p);
             const outOfStock = tracked && p.stock <= 0;
@@ -108,7 +108,7 @@ export const BillingDesk = ({
                 key={p.id}
                 disabled={outOfStock}
                 onClick={() => addToCart(p)}
-                className={`text-left border rounded-lg p-2.5 sm:p-3 transition flex flex-col justify-between ${
+                className={`text-left border rounded-lg p-2.5 sm:p-3 transition flex flex-col justify-between min-h-[105px] sm:min-h-[115px] ${
                   outOfStock
                     ? "opacity-50 cursor-not-allowed border-stone-100 bg-stone-50"
                     : "border-stone-200 hover:border-emerald-700 hover:shadow-sm bg-white active:scale-[0.98]"

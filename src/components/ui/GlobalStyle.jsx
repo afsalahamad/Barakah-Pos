@@ -5,6 +5,18 @@ export const GlobalStyle = () => (
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap');
     .font-display { font-family: 'Space Grotesk', sans-serif; }
     .font-body { font-family: 'IBM Plex Sans', sans-serif; }
+
+    /* Remove number input up/down spinner arrows globally */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input[type="number"] {
+      -moz-appearance: textfield;
+      appearance: textfield;
+    }
+
     @media print {
       @page {
         size: auto;

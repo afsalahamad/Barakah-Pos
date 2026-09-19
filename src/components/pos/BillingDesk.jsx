@@ -244,6 +244,7 @@ export const BillingDesk = ({
                   setCashReceivedInput(e.target.value);
                   setCartError("");
                 }}
+                onWheel={(e) => e.currentTarget.blur()}
               />
             </Field>
           </div>

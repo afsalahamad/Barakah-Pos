@@ -85,15 +85,15 @@ export const AppModals = ({
             </select>
           </Field>
           <Field label="Selling price" required>
-            <input type="number" className={inputCls} value={d.price} onChange={(e) => set("price", e.target.value)} />
+            <input type="number" className={inputCls} value={d.price} onChange={(e) => set("price", e.target.value)} onWheel={(e) => e.currentTarget.blur()} />
           </Field>
           <Field label="Cost price">
-            <input type="number" className={inputCls} value={d.cost} onChange={(e) => set("cost", e.target.value)} />
+            <input type="number" className={inputCls} value={d.cost} onChange={(e) => set("cost", e.target.value)} onWheel={(e) => e.currentTarget.blur()} />
           </Field>
           {(d.inventoryType || "STOCK_TRACKED") === "STOCK_TRACKED" && (
             <>
               <Field label="Current Stock" required>
-                <input type="number" className={inputCls} value={d.stock} onChange={(e) => set("stock", e.target.value)} />
+                <input type="number" className={inputCls} value={d.stock} onChange={(e) => set("stock", e.target.value)} onWheel={(e) => e.currentTarget.blur()} />
               </Field>
               <Field label="Low stock threshold">
                 <input
@@ -101,6 +101,7 @@ export const AppModals = ({
                   className={inputCls}
                   value={d.lowStockThreshold}
                   onChange={(e) => set("lowStockThreshold", e.target.value)}
+                  onWheel={(e) => e.currentTarget.blur()}
                 />
               </Field>
               <Field label="Unit">
@@ -181,6 +182,7 @@ export const AppModals = ({
             className={inputCls}
             value={qty}
             onChange={(e) => setModal({ ...modal, qty: e.target.value })}
+            onWheel={(e) => e.currentTarget.blur()}
           />
         </Field>
         <Field label="Reason" required>
@@ -517,6 +519,7 @@ export const AppModals = ({
                         className={inputCls + " text-xs py-1 text-center font-medium"}
                         value={it.receivedQty}
                         onChange={(e) => updateItem(idx, "receivedQty", e.target.value)}
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                     </div>
                     <div className="col-span-2">
@@ -528,6 +531,7 @@ export const AppModals = ({
                         className={inputCls + " text-xs py-1 text-right"}
                         value={it.unitCost}
                         onChange={(e) => updateItem(idx, "unitCost", e.target.value)}
+                        onWheel={(e) => e.currentTarget.blur()}
                       />
                     </div>
                     <div className="col-span-2 flex items-center justify-between pl-1">
@@ -662,6 +666,7 @@ export const AppModals = ({
               placeholder="0.00"
               value={d.amount}
               onChange={(e) => set("amount", e.target.value)}
+              onWheel={(e) => e.currentTarget.blur()}
             />
           </Field>
           <Field label="Note / Description">

@@ -91,6 +91,21 @@ export default function BarakahPOS() {
     }
   }, []);
 
+  // Prevent mouse wheel from accidentally changing focused number input values globally
+  useEffect(() => {
+    const handleWheel = (e) => {
+      if (
+        document.activeElement &&
+        document.activeElement.tagName === "INPUT" &&
+        document.activeElement.type === "number"
+      ) {
+        document.activeElement.blur();
+      }
+    };
+    window.addEventListener("wheel", handleWheel, { passive: true });
+    return () => window.removeEventListener("wheel", handleWheel);
+  }, []);
+
 
   const [business, setBusiness] = useState({
     name: "Barakah Mart",
